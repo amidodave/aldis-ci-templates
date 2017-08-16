@@ -255,18 +255,20 @@ Resources:
               OutputArtifacts:
                 - Name: MetadataApiApp
               RunOrder: 1
-            - Name: Template
+            - Name: Templates
               ActionTypeId:
                 Category: Source
-                Owner: AWS
+                Owner: ThirdParty
                 Version: 1
-                Provider: S3
+                Provider: GitHub
+              Configuration:
+                Owner: amidodave
+                Repo: aldis-ci-templates
+                Branch: master
+                OAuthToken: !Ref GitHubToken
               OutputArtifacts:
                 - Name: Template
               RunOrder: 1
-              Configuration:
-                S3Bucket: s3://dh-aldis-ci/
-                S3ObjectKey: templates.zip
   
         - Name: Build
           Actions:
