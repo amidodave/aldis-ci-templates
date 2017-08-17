@@ -151,7 +151,7 @@ Resources:
             post_build:
               commands:
                 - docker push "${REPOSITORY_URI}:${TAG}"
-                - printf '{"tag":"%s"}' $TAG > build.json
+                - printf '{"tag":"%s"}' $TAG > uibuild.json
           artifacts:
             files: build.json
       Environment:
@@ -202,7 +202,7 @@ Resources:
             post_build:
               commands:
                 - docker push "${REPOSITORY_URI}:${TAG}"
-                - printf '{"tag":"%s"}' $TAG > build.json
+                - printf '{"tag":"%s"}' $TAG > apibuild.json
           artifacts:
             files: build.json
       Environment:
@@ -315,8 +315,8 @@ Resources:
                 RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                 ParameterOverrides: !Sub |
                   {
-                    "UITag" : { "Fn::GetParam" : [ "UIBuildOutput", "build.json", "tag" ] },
-                    "MetadataApiTag" : { "Fn::GetParam" : [ "MetadataApiBuildOutput", "build.json", "tag" ] },
+                    "UITag" : { "Fn::GetParam" : [ "UIBuildOutput", "uibuild.json", "tag" ] },
+                    "MetadataApiTag" : { "Fn::GetParam" : [ "MetadataApiBuildOutput", "apibuild.json", "tag" ] },
                     "DesiredCount": "1",
                     "Cluster": "${Cluster}",
                     "TargetGroup": "${TargetGroup}",
