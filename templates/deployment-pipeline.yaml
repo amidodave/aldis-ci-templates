@@ -144,7 +144,7 @@ Resources:
             pre_build:
               commands:
                 - $(aws ecr get-login)
-                - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)-ui"
+                - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 5)-ui"
             build:
               commands:
                 - docker build --tag "${REPOSITORY_URI}:${TAG}" .
@@ -192,7 +192,7 @@ Resources:
             pre_build:
               commands:
                 - $(aws ecr get-login)
-                - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)-api"
+                - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 4)-api"
                 - echo "${REPOSITORY_URI}:${TAG}"
             build:
               commands:
