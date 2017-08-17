@@ -82,10 +82,10 @@ Resources:
         - Key: deregistration_delay.timeout_seconds
           Value: 30
 
-  ListenerRule:
+  UIListenerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
-      ListenerArn: !Ref LoadBalancerListener
+      ListenerArn: !Ref UILoadBalancerListener
       Priority: 1
       Conditions:
         - Field: path-pattern
@@ -94,6 +94,17 @@ Resources:
       Actions:
         - TargetGroupArn: !Ref UITargetGroup
           Type: forward
+
+  MetadataApiListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref MetadataApiLoadBalancerListener
+      Priority: 1
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /
+      Actions:
         - TargetGroupArn: !Ref MetadataApiTargetGroup
           Type: forward
 
