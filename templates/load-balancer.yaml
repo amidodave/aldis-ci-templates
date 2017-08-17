@@ -25,7 +25,7 @@ Resources:
       SecurityGroups:
         - !Ref SecurityGroup
 
-  LoadBalancerListener:
+  UILoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       LoadBalancerArn: !Ref LoadBalancer
@@ -33,14 +33,43 @@ Resources:
       Protocol: HTTP
       DefaultActions:
         - Type: forward
-          TargetGroupArn: !Ref TargetGroup
+          TargetGroupArn: !Ref UITargetGroup
 
-  TargetGroup:
+  MetadataApiLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 8080
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref MetadataApiTargetGroup
+
+
+  UITargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     DependsOn: LoadBalancer
     Properties:
       VpcId: !Ref VpcId
       Port: 80
+      Protocol: HTTP
+      Matcher:
+        HttpCode: 200-299
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 30
+
+    MetadataApiTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    DependsOn: LoadBalancer
+    Properties:
+      VpcId: !Ref VpcId
+      Port: 8080
       Protocol: HTTP
       Matcher:
         HttpCode: 200-299
@@ -63,13 +92,18 @@ Resources:
           Values:
             - /
       Actions:
-        - TargetGroupArn: !Ref TargetGroup
+        - TargetGroupArn: !Ref UITargetGroup
+          Type: forward
+        - TargetGroupArn: !Ref MetadataApiTargetGroup
           Type: forward
 
 
 Outputs:
-  TargetGroup:
-    Value: !Ref TargetGroup
+  UITargetGroup:
+    Value: !Ref UITargetGroup
+
+  MetadataApiTargetGroup:
+    Value: !Ref MetadataApiTargetGroup
 
   ServiceUrl:
     Description: URL of the load balancer for the sample service.
