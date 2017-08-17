@@ -67,6 +67,7 @@ Resources:
               ContainerPath: /var/www/aldis-ui-vol
           PortMappings:
             - ContainerPort: 80
+              HostPort: 80
           Environment:
             - Name: UITag
               Value: !Ref UITag
@@ -81,6 +82,7 @@ Resources:
           Memory: 128
           PortMappings:
             - ContainerPort: 8080
+              HostPort: 8080
           Environment:
             - Name: MetadataApiTag
               Value: !Ref MetadataApiTag
