@@ -98,7 +98,7 @@ Resources:
     UpdatePolicy:
       AutoScalingRollingUpdate:
         MinInstancesInService: 1
-        MaxBatchSize: 1
+        MaxBatchSize: 2
         PauseTime: PT15M
         WaitOnResourceSignals: true
 

@@ -48,9 +48,6 @@ Resources:
         - ContainerName: aldis-ui
           ContainerPort: 80
           TargetGroupArn: !Ref TargetGroup
-        - ContainerName: aldis-metadata-api
-          ContainerPort: 8080
-          TargetGroupArn: !Ref TargetGroup
 
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
