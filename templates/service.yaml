@@ -74,7 +74,7 @@ Resources:
             - Name: UITag
               Value: !Ref UITag
         - Name: aldis-metadata-api
-          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${MetadataApiRepository}:${MetadataApiTag}
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${MetadataApiRepository}:0.0.1-SNAPSHOT
           EntryPoint:
             - java
             - -Djava.security.egd=file:/dev/./urandom
