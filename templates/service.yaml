@@ -74,7 +74,7 @@ Resources:
             - Name: UITag
               Value: !Ref UITag
         - Name: aldis-metadata-api
-          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${MetadataApiRepository}:1221
+          Image: 856351629058.dkr.ecr.us-east-1.amazonaws.com/aldis-metad-hs6e2nt8x5z8:1221
           EntryPoint:
             - python
             - -m
