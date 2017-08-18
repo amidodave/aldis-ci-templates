@@ -5,10 +5,16 @@ Parameters:
   GitHubMetadataApiRepo:
     Type: String
 
+  GitHubTemplatesRepo:
+    Type: String
+
   GitHubBranch:
     Type: String
 
   GitHubUIBranch:
+    Type: String
+
+  GitHubTemplatesBranch:
     Type: String
 
   GitHubToken:
@@ -24,7 +30,11 @@ Parameters:
     Type: String
 
 Resources:
-  Repository:
+  UIRepository:
+    Type: AWS::ECR::Repository
+    DeletionPolicy: Retain
+
+  MetadataApiRepository:
     Type: AWS::ECR::Repository
     DeletionPolicy: Retain
 
@@ -83,7 +93,17 @@ Resources:
                   - s3:GetObject
                   - s3:PutObject
                   - s3:GetObjectVersion
-              - Resource: !Sub arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${Repository}
+              - Resource: !Sub arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${UIRepository}
+                Effect: Allow
+                Action:
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:PutImage
+                  - ecr:InitiateLayerUpload
+                  - ecr:UploadLayerPart
+                  - ecr:CompleteLayerUpload
+              - Resource: !Sub arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${MetadataApiRepository}
                 Effect: Allow
                 Action:
                   - ecr:GetDownloadUrlForLayer
@@ -151,7 +171,7 @@ Resources:
             post_build:
               commands:
                 - docker push "${REPOSITORY_URI}:${TAG}"
-                - printf '{"tag":"%s"}' $TAG > build.json
+                - printf '{"tag":"%s"}' $TAG > buildui.json
           artifacts:
             files: build.json
       Environment:
@@ -162,7 +182,7 @@ Resources:
           - Name: AWS_DEFAULT_REGION
             Value: !Ref AWS::Region
           - Name: REPOSITORY_URI
-            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repository}
+            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${UIRepository}
       Name: !Sub ${AWS::StackName}-UI
       ServiceRole: !Ref CodeBuildServiceRole
 
@@ -202,9 +222,9 @@ Resources:
             post_build:
               commands:
                 - docker push "${REPOSITORY_URI}:${TAG}"
-                - printf '{"tag":"%s"}' $TAG > build.json
+                - printf '{"tag":"%s"}' $TAG > buildapi.json
           artifacts:
-            files: build.json
+            files: buildapi.json
       Environment:
         ComputeType: "BUILD_GENERAL1_SMALL"
         Image: "aws/codebuild/docker:1.12.1"
@@ -213,7 +233,7 @@ Resources:
           - Name: AWS_DEFAULT_REGION
             Value: !Ref AWS::Region
           - Name: REPOSITORY_URI
-            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repository}
+            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${MetadataApiRepository}
       Name: !Sub ${AWS::StackName}-API
       ServiceRole: !Ref CodeBuildServiceRole
 
@@ -263,8 +283,8 @@ Resources:
                 Provider: GitHub
               Configuration:
                 Owner: amidodave
-                Repo: aldis-ci-templates
-                Branch: master
+                Repo: !Ref GitHubTemplatesRepo
+                Branch: !Ref GitHubTemplatesBranch
                 OAuthToken: !Ref GitHubToken
               OutputArtifacts:
                 - Name: Template
@@ -315,12 +335,13 @@ Resources:
                 RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                 ParameterOverrides: !Sub |
                   {
-                    "UITag" : { "Fn::GetParam" : [ "UIBuildOutput", "build.json", "tag" ] },
-                    "MetadataApiTag" : { "Fn::GetParam" : [ "MetadataApiBuildOutput", "build.json", "tag" ] },
+                    "UITag" : { "Fn::GetParam" : [ "UIBuildOutput", "buildui.json", "tag" ] },
+                    "MetadataApiTag" : { "Fn::GetParam" : [ "MetadataApiBuildOutput", "buildapi.json", "tag" ] },
                     "DesiredCount": "1",
                     "Cluster": "${Cluster}",
                     "TargetGroup": "${TargetGroup}",
-                    "Repository": "${Repository}"
+                    "UIRepository": "${UIRepository}",
+                    "MetadataApiRepository": "${MetadataApiRepository}"
                   }
               InputArtifacts:
                 - Name: Template
