@@ -164,16 +164,16 @@ Resources:
             pre_build:
               commands:
                 - $(aws ecr get-login)
-                - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
+                - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 5)-ui"
             build:
               commands:
                 - docker build --tag "${REPOSITORY_URI}:${TAG}" .
             post_build:
               commands:
                 - docker push "${REPOSITORY_URI}:${TAG}"
-                - printf '{"tag":"%s"}' $TAG > buildui.json
+                - printf '{"tag":"%s"}' $TAG > uibuild.json
           artifacts:
-            files: buildui.json
+            files: uibuild.json
       Environment:
         ComputeType: "BUILD_GENERAL1_SMALL"
         Image: "aws/codebuild/docker:1.12.1"
@@ -212,7 +212,7 @@ Resources:
             pre_build:
               commands:
                 - $(aws ecr get-login)
-                - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
+                - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 4)-api"
                 - echo "${REPOSITORY_URI}:${TAG}"
             build:
               commands:
@@ -222,9 +222,9 @@ Resources:
             post_build:
               commands:
                 - docker push "${REPOSITORY_URI}:${TAG}"
-                - printf '{"tag":"%s"}' $TAG > buildapi.json
+                - printf '{"tag":"%s"}' $TAG > apibuild.json
           artifacts:
-            files: buildapi.json
+            files: apibuild.json
       Environment:
         ComputeType: "BUILD_GENERAL1_SMALL"
         Image: "aws/codebuild/docker:1.12.1"
@@ -335,8 +335,8 @@ Resources:
                 RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                 ParameterOverrides: !Sub |
                   {
-                    "UITag" : { "Fn::GetParam" : [ "UIBuildOutput", "buildui.json", "tag" ] },
-                    "MetadataApiTag" : { "Fn::GetParam" : [ "MetadataApiBuildOutput", "buildapi.json", "tag" ] },
+                    "UITag" : { "Fn::GetParam" : [ "UIBuildOutput", "uibuild.json", "tag" ] },
+                    "MetadataApiTag" : { "Fn::GetParam" : [ "MetadataApiBuildOutput", "apibuild.json", "tag" ] },
                     "DesiredCount": "1",
                     "Cluster": "${Cluster}",
                     "TargetGroup": "${TargetGroup}",
