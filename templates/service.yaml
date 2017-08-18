@@ -17,9 +17,11 @@ Parameters:
   Cluster:
     Type: String
 
-  Repository:
+  UIRepository:
     Type: String
 
+  MetadataApiRepository:
+    Type: String
 
 Resources:
   ECSServiceRole:
@@ -55,7 +57,7 @@ Resources:
       Family: !Sub ${AWS::StackName}-aldis
       ContainerDefinitions:
         - Name: aldis-ui
-          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repository}:${UITag}
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${UIRepository}:${UITag}
           EntryPoint:
             - /usr/sbin/apache2
             - -D
@@ -71,7 +73,7 @@ Resources:
             - Name: UITag
               Value: !Ref UITag
         - Name: aldis-metadata-api
-          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repository}:${MetadataApiTag}
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${MetadataApiRepository}:${MetadataApiTag}
           EntryPoint:
             - java
             - -Djava.security.egd=file:/dev/./urandom
