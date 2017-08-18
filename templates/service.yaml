@@ -74,12 +74,12 @@ Resources:
             - Name: UITag
               Value: !Ref UITag
         - Name: aldis-metadata-api
-          Image: 856351629058.dkr.ecr.us-east-1.amazonaws.com/aldis-metad-hs6e2nt8x5z8:1221
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${MetadataApiRepository}:${MetadataApiTag}
           EntryPoint:
-            - python
-            - -m
-            - SimpleHTTPServer
-            - "8080"
+            - java
+            - -Djava.security.egd=file:/dev/./urandom
+            - -jar
+            - /aldis-metadata-api.jar
           Essential: true
           Memory: 128
           PortMappings:
