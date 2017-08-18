@@ -75,6 +75,11 @@ Resources:
               Value: !Ref UITag
         - Name: aldis-metadata-api
           Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${MetadataApiRepository}:1221
+          EntryPoint:
+            - python
+            - -m
+            - SimpleHTTPServer
+            - "8080"
           Essential: true
           Memory: 128
           PortMappings:
