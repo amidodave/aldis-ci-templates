@@ -175,7 +175,7 @@ Resources:
           artifacts:
             files: uibuild.json
       Environment:
-        ComputeType: "BUILD_GENERAL1_SMALL"
+        ComputeType: "BUILD_GENERAL1_LARGE"
         Image: "aws/codebuild/docker:1.12.1"
         Type: "LINUX_CONTAINER"
         EnvironmentVariables:
@@ -226,7 +226,7 @@ Resources:
           artifacts:
             files: apibuild.json
       Environment:
-        ComputeType: "BUILD_GENERAL1_SMALL"
+        ComputeType: "BUILD_GENERAL1_LARGE"
         Image: "aws/codebuild/docker:1.12.1"
         Type: "LINUX_CONTAINER"
         EnvironmentVariables:
