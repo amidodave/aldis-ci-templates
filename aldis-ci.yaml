@@ -1,0 +1,134 @@
+Description: >
+  Use AWS CodeBuild and AWS CodePipeline to achieve continuous 
+  deployment of source code from a GitHub repository via a
+  Docker container to an Amazon EC2 Container Service cluster.
+
+
+Parameters:
+  GitHubUser:
+    Type: String
+    Default: thisisglobal
+    Description: Your username on GitHub.
+
+  GitHubUIRepo:
+    Type: String
+    Default: aldis-ui
+    Description: The repo name of the UI service.
+
+  GitHubMetadataApiRepo:
+    Type: String
+    Default: aldis-metadata-api
+    Description: The repo name of the Metadata API service.
+
+  GitHubTemplatesRepo:
+    Type: String
+    Default: aldis-ci-templates
+    Description: The repo name of the CI templates.
+
+  GitHubBranch:
+    Type: String
+    Default: master
+    Description: The branch of the Api repo to continuously deploy.
+
+  GitHubUIBranch:
+    Type: String
+    Default: dev
+    Description: The branch of the UI repo to continuously deploy.
+
+  GitHubTemplatesBranch:
+    Type: String
+    Default: master
+    Description: The branch of the templates repo to continuously deploy.
+
+  GitHubToken:
+    Type: String
+    Description: >
+      Token for the user specified above. (https://github.com/settings/tokens)
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterLabels:
+      GitHubUser:
+        default: "User"
+      GitHubUIRepo:
+        default: "UI Repo"
+      GitHubMetadataApiRepo:
+        default: "Metadata API Repo"
+      GitHubTemplatesRepo:
+        default: "CI Templates Repo"
+      GitHubBranch:
+        default: "API Branch"
+      GitHubUIBranch:
+        default: "UI Branch"
+      GitHubTemplatesBranch:
+        default: "Templates Branch"
+      GitHubToken:
+        default: "Personal Access Token"
+    ParameterGroups:
+      - Label:
+          default: GitHub Configuration
+        Parameters:
+          - GitHubUIRepo
+          - GitHubMetadataApiRepo
+          - GitHubTemplatesRepo
+          - GitHubBranch
+          - GitHubUIBranch
+          - GitHubTemplatesBranch
+          - GitHubUser
+          - GitHubToken
+
+
+Resources:
+  Cluster:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3-eu-west-1.amazonaws.com/dh-aldis-ci/ci-templates/ecs-cluster.yaml
+      Parameters:
+        SourceSecurityGroup: !GetAtt LoadBalancer.Outputs.SecurityGroup
+        Subnets: !GetAtt VPC.Outputs.Subnets
+        VpcId: !GetAtt VPC.Outputs.VpcId
+
+  DeploymentPipeline:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3-eu-west-1.amazonaws.com/dh-aldis-ci/ci-templates/deployment-pipeline.yaml
+      Parameters:
+        Cluster: !GetAtt Cluster.Outputs.ClusterName
+        GitHubUser: !Ref GitHubUser
+        GitHubToken: !Ref GitHubToken
+        GitHubUIRepo: !Ref GitHubUIRepo
+        GitHubMetadataApiRepo: !Ref GitHubMetadataApiRepo
+        GitHubTemplatesRepo: !Ref GitHubTemplatesRepo
+        GitHubBranch: !Ref GitHubBranch
+        GitHubUIBranch: !Ref GitHubUIBranch
+        GitHubTemplatesBranch: !Ref GitHubTemplatesBranch
+        TargetGroup: !GetAtt LoadBalancer.Outputs.TargetGroup
+
+  LoadBalancer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3-eu-west-1.amazonaws.com/dh-aldis-ci/ci-templates/load-balancer.yaml
+      Parameters:
+        Subnets: !GetAtt VPC.Outputs.Subnets
+        VpcId: !GetAtt VPC.Outputs.VpcId
+
+  VPC:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3-eu-west-1.amazonaws.com/dh-aldis-ci/ci-templates/vpc.yaml
+      Parameters:
+        Name: !Ref AWS::StackName
+        VpcCIDR: 10.215.0.0/16
+        Subnet1CIDR: 10.215.10.0/24
+        Subnet2CIDR: 10.215.20.0/24
+
+
+Outputs:
+  ServiceUrl:
+    Description: The service that is being deployed.
+    Value: !GetAtt LoadBalancer.Outputs.ServiceUrl
+
+  PipelineUrl:
+    Description: The deployment pipeline in the AWS Management Console.
+    Value: !GetAtt DeploymentPipeline.Outputs.PipelineUrl
