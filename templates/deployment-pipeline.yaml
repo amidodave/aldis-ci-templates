@@ -173,7 +173,7 @@ Resources:
                 - docker push "${REPOSITORY_URI}:${TAG}"
                 - printf '{"tag":"%s"}' $TAG > buildui.json
           artifacts:
-            files: build.json
+            files: buildui.json
       Environment:
         ComputeType: "BUILD_GENERAL1_SMALL"
         Image: "aws/codebuild/docker:1.12.1"
