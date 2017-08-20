@@ -3,10 +3,6 @@ Parameters:
     Type: String
     Default: latest
 
-  MetadataApiTag:
-    Type: String
-    Default: latest
-
   DesiredCount:
     Type: Number
     Default: 0
@@ -18,9 +14,6 @@ Parameters:
     Type: String
 
   UIRepository:
-    Type: String
-
-  MetadataApiRepository:
     Type: String
 
 Resources:
@@ -65,29 +58,9 @@ Resources:
             - 3000
           Essential: true
           Memory: 128
-          MountPoints:
-            - SourceVolume: aldis-ui-vol
-              ContainerPath: /var/www/aldis-ui-vol
           PortMappings:
             - ContainerPort: 3000
               HostPort: 80
           Environment:
             - Name: UITag
               Value: !Ref UITag
-        - Name: aldis-metadata-api
-          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${MetadataApiRepository}:${MetadataApiTag}
-          EntryPoint:
-            - java
-            - -Djava.security.egd=file:/dev/./urandom
-            - -jar
-            - /aldis-metadata-api.jar
-          Essential: true
-          Memory: 128
-          PortMappings:
-            - ContainerPort: 8080
-              HostPort: 8081
-          Environment:
-            - Name: MetadataApiTag
-              Value: !Ref MetadataApiTag
-      Volumes:
-        - Name: aldis-ui-vol

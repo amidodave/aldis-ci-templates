@@ -89,19 +89,33 @@ Resources:
         Subnets: !GetAtt VPC.Outputs.Subnets
         VpcId: !GetAtt VPC.Outputs.VpcId
 
-  DeploymentPipeline:
+  UIDeploymentPipeline:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3-eu-west-1.amazonaws.com/dh-aldis-ci/ci-templates/deployment-pipeline.yaml
+      TemplateURL: https://s3-eu-west-1.amazonaws.com/dh-aldis-ci/ci-templates/ui-pipeline.yaml
       Parameters:
+        Name: !Ref AWS::StackName
         Cluster: !GetAtt Cluster.Outputs.ClusterName
         GitHubUser: !Ref GitHubUser
         GitHubToken: !Ref GitHubToken
         GitHubUIRepo: !Ref GitHubUIRepo
+        GitHubTemplatesRepo: !Ref GitHubTemplatesRepo
+        GitHubUIBranch: !Ref GitHubUIBranch
+        GitHubTemplatesBranch: !Ref GitHubTemplatesBranch
+        TargetGroup: !GetAtt LoadBalancer.Outputs.TargetGroup
+  
+  ApiDeploymentPipeline:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3-eu-west-1.amazonaws.com/dh-aldis-ci/ci-templates/api-pipeline.yaml
+      Parameters:
+        Name: !Ref AWS::StackName
+        Cluster: !GetAtt Cluster.Outputs.ClusterName
+        GitHubUser: !Ref GitHubUser
+        GitHubToken: !Ref GitHubToken
         GitHubMetadataApiRepo: !Ref GitHubMetadataApiRepo
         GitHubTemplatesRepo: !Ref GitHubTemplatesRepo
         GitHubBranch: !Ref GitHubBranch
-        GitHubUIBranch: !Ref GitHubUIBranch
         GitHubTemplatesBranch: !Ref GitHubTemplatesBranch
         TargetGroup: !GetAtt LoadBalancer.Outputs.TargetGroup
 
@@ -129,6 +143,10 @@ Outputs:
     Description: The service that is being deployed.
     Value: !GetAtt LoadBalancer.Outputs.ServiceUrl
 
-  PipelineUrl:
-    Description: The deployment pipeline in the AWS Management Console.
-    Value: !GetAtt DeploymentPipeline.Outputs.PipelineUrl
+  UIPipelineUrl:
+    Description: The UI deployment pipeline in the AWS Management Console.
+    Value: !GetAtt UIDeploymentPipeline.Outputs.PipelineUrl
+
+  ApiPipelineUrl:
+    Description: The API deployment pipeline in the AWS Management Console.
+    Value: !GetAtt ApiDeploymentPipeline.Outputs.PipelineUrl
