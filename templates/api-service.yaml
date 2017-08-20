@@ -41,7 +41,7 @@ Resources:
       DesiredCount: !Ref DesiredCount
       TaskDefinition: !Ref TaskDefinition
       LoadBalancers:
-        - ContainerName: aldis-api
+        - ContainerName: aldis-metadata-api
           ContainerPort: 8080
           TargetGroupArn: !Ref TargetGroup
 
