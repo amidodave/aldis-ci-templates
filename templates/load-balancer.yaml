@@ -16,6 +16,10 @@ Resources:
           IpProtocol: "TCP"
           FromPort: 80
           ToPort: 80
+        - CidrIp: "0.0.0.0/0"
+          IpProtocol: "TCP"
+          FromPort: 8080
+          ToPort: 8080
       VpcId: !Ref VpcId
 
   LoadBalancer:
@@ -25,7 +29,7 @@ Resources:
       SecurityGroups:
         - !Ref SecurityGroup
 
-  LoadBalancerListener:
+  UILoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       LoadBalancerArn: !Ref LoadBalancer
@@ -33,9 +37,19 @@ Resources:
       Protocol: HTTP
       DefaultActions:
         - Type: forward
-          TargetGroupArn: !Ref TargetGroup
+          TargetGroupArn: !Ref UITargetGroup
 
-  TargetGroup:
+  MetadataApiLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 8080
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref MetadataApiTargetGroup
+
+  UITargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     DependsOn: LoadBalancer
     Properties:
@@ -53,23 +67,56 @@ Resources:
         - Key: deregistration_delay.timeout_seconds
           Value: 30
 
-  ListenerRule:
+  MetadataApiTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    DependsOn: LoadBalancer
+    Properties:
+      VpcId: !Ref VpcId
+      Port: 8080
+      Protocol: HTTP
+      Matcher:
+        HttpCode: 200-299
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /v1/swagger-ui.html
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 30          
+
+  UIListenerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
-      ListenerArn: !Ref LoadBalancerListener
+      ListenerArn: !Ref UILoadBalancerListener
       Priority: 1
       Conditions:
         - Field: path-pattern
           Values:
             - /
       Actions:
-        - TargetGroupArn: !Ref TargetGroup
+        - TargetGroupArn: !Ref UITargetGroup
           Type: forward
 
+  MetadataApiListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref MetadataApiLoadBalancerListener
+      Priority: 1
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /v1/
+      Actions:
+        - TargetGroupArn: !Ref MetadataApiTargetGroup
+          Type: forward
 
 Outputs:
-  TargetGroup:
-    Value: !Ref TargetGroup
+  UITargetGroup:
+    Value: !Ref UITargetGroup
+
+  MetadataApiTargetGroup:
+    Value: !Ref MetadataApiTargetGroup
 
   ServiceUrl:
     Description: URL of the load balancer for the sample service.

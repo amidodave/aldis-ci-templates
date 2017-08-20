@@ -20,7 +20,7 @@ Parameters:
   GitHubUser:
     Type: String
 
-  TargetGroup:
+  MetadataApiTargetGroup:
     Type: String
 
   Cluster:
@@ -139,9 +139,11 @@ Resources:
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
-        Type: "CODEPIPELINE"
+        Location: !Ref ArtifactBucket
+        Type: "S3"
       Source:
-        Type: "CODEPIPELINE"
+        Location: !Sub ${ArtifactBucket}/aldis-metadata-api-source.zip
+        Type: "S3"
         BuildSpec: |
           version: 0.2
           phases:
@@ -261,7 +263,7 @@ Resources:
                     "MetadataApiTag" : { "Fn::GetParam" : [ "MetadataApiBuildOutput", "apibuild.json", "tag" ] },
                     "DesiredCount": "1",
                     "Cluster": "${Cluster}",
-                    "TargetGroup": "${TargetGroup}",
+                    "MetadataApiTargetGroup": "${MetadataApiTargetGroup}",
                     "MetadataApiRepository": "${MetadataApiRepository}"
                   }
               InputArtifacts:

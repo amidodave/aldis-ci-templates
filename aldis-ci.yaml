@@ -102,7 +102,7 @@ Resources:
         GitHubTemplatesRepo: !Ref GitHubTemplatesRepo
         GitHubUIBranch: !Ref GitHubUIBranch
         GitHubTemplatesBranch: !Ref GitHubTemplatesBranch
-        TargetGroup: !GetAtt LoadBalancer.Outputs.TargetGroup
+        UITargetGroup: !GetAtt LoadBalancer.Outputs.UITargetGroup
   
   ApiDeploymentPipeline:
     Type: AWS::CloudFormation::Stack
@@ -117,7 +117,7 @@ Resources:
         GitHubTemplatesRepo: !Ref GitHubTemplatesRepo
         GitHubBranch: !Ref GitHubBranch
         GitHubTemplatesBranch: !Ref GitHubTemplatesBranch
-        TargetGroup: !GetAtt LoadBalancer.Outputs.TargetGroup
+        MetadataApiTargetGroup: !GetAtt LoadBalancer.Outputs.MetadataApiTargetGroup
 
   LoadBalancer:
     Type: AWS::CloudFormation::Stack

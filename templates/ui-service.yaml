@@ -7,7 +7,7 @@ Parameters:
     Type: Number
     Default: 0
 
-  TargetGroup:
+  UITargetGroup:
     Type: String
 
   Cluster:
@@ -42,7 +42,7 @@ Resources:
       LoadBalancers:
         - ContainerName: aldis-ui
           ContainerPort: 3000
-          TargetGroupArn: !Ref TargetGroup
+          TargetGroupArn: !Ref UITargetGroup
 
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition

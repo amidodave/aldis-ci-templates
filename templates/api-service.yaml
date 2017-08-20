@@ -8,7 +8,7 @@ Parameters:
     Type: Number
     Default: 0
 
-  TargetGroup:
+  MetadataApiTargetGroup:
     Type: String
 
   Cluster:
@@ -43,7 +43,7 @@ Resources:
       LoadBalancers:
         - ContainerName: aldis-metadata-api
           ContainerPort: 8080
-          TargetGroupArn: !Ref TargetGroup
+          TargetGroupArn: !Ref MetadataApiTargetGroup
 
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -61,7 +61,7 @@ Resources:
           Memory: 128
           PortMappings:
             - ContainerPort: 8080
-              HostPort: 8081
+              HostPort: 8080
           Environment:
             - Name: MetadataApiTag
               Value: !Ref MetadataApiTag
