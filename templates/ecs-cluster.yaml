@@ -56,8 +56,17 @@ Resources:
                 "Action": [ "sts:AssumeRole" ]
             }]
         }
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Resource: "*"
+                Effect: Allow
+                Action:
+                  - ecs:*
+                  - ecr:*
+                  - iam:*
 
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -137,7 +146,7 @@ Resources:
       ImageId: !FindInMap [ AWSRegionToAMI, !Ref "AWS::Region", AMI ]
       InstanceType: !Ref InstanceType
       IamInstanceProfile: !Ref InstanceProfile
-      KeyName: dh-test-keypair
+      KeyName: dh-useast-keypair
       SecurityGroups:
         - !Ref SecurityGroup
       UserData:

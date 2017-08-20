@@ -85,7 +85,7 @@ Resources:
           Memory: 128
           PortMappings:
             - ContainerPort: 8080
-              HostPort: 8080
+              HostPort: 8081
           Environment:
             - Name: MetadataApiTag
               Value: !Ref MetadataApiTag
