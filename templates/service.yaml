@@ -59,16 +59,17 @@ Resources:
         - Name: aldis-ui
           Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${UIRepository}:${UITag}
           EntryPoint:
-            - /usr/sbin/apache2
-            - -D
-            - FOREGROUND
+            - hs
+            - build
+            - -p
+            - 3000
           Essential: true
           Memory: 128
           MountPoints:
             - SourceVolume: aldis-ui-vol
               ContainerPath: /var/www/aldis-ui-vol
           PortMappings:
-            - ContainerPort: 80
+            - ContainerPort: 3000
               HostPort: 80
           Environment:
             - Name: UITag
