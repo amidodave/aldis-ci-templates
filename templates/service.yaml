@@ -48,7 +48,7 @@ Resources:
       TaskDefinition: !Ref TaskDefinition
       LoadBalancers:
         - ContainerName: aldis-ui
-          ContainerPort: 80
+          ContainerPort: 3000
           TargetGroupArn: !Ref TargetGroup
 
   TaskDefinition:
