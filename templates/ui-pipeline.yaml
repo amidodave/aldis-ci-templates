@@ -247,7 +247,7 @@ Resources:
                     "DesiredCount": "1",
                     "Cluster": "${Cluster}",
                     "TargetGroup": "${TargetGroup}",
-                    "UIRepository": "${UIRepository}",
+                    "UIRepository": "${UIRepository}"
                   }
               InputArtifacts:
                 - Name: Template
