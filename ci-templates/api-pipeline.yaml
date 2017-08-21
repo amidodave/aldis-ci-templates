@@ -213,7 +213,7 @@ Resources:
               OutputArtifacts:
                 - Name: MetadataApiApp
               RunOrder: 1
-            - Name: Template
+            - Name: Templates
               ActionTypeId:
                 Category: Source
                 Owner: ThirdParty
