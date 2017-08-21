@@ -45,6 +45,10 @@ Parameters:
     Description: >
       Token for the user specified above. (https://github.com/settings/tokens)
 
+  EC2KeyPair:
+    Type: String
+    Description: Name of EC2 keypair (to SSH to EC2 instance)
+
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -65,6 +69,10 @@ Metadata:
         default: "Templates Branch"
       GitHubToken:
         default: "Personal Access Token"
+      S3Bucket:
+        default: "Template bucket"
+      EC2KeyPair:
+        default: "EC2 Keypair"
     ParameterGroups:
       - Label:
           default: GitHub Configuration
@@ -77,14 +85,20 @@ Metadata:
           - GitHubTemplatesBranch
           - GitHubUser
           - GitHubToken
+      - Label:
+          default: Other settings
+        Parameters:
+          - S3Bucket
+          - EC2KeyPair
 
 
 Resources:
   Cluster:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3-eu-west-1.amazonaws.com/dh-aldis-ci/ci-templates/ecs-cluster.yaml
+      TemplateURL: https://s3-eu-west-1.amazonaws.com/aldis-ci-templates-eu-west-1/ci-templates/ecs-cluster.yaml
       Parameters:
+        EC2KeyPair: !Ref EC2KeyPair
         SourceSecurityGroup: !GetAtt LoadBalancer.Outputs.SecurityGroup
         Subnets: !GetAtt VPC.Outputs.Subnets
         VpcId: !GetAtt VPC.Outputs.VpcId
@@ -92,7 +106,7 @@ Resources:
   UIDeploymentPipeline:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3-eu-west-1.amazonaws.com/dh-aldis-ci/ci-templates/ui-pipeline.yaml
+      TemplateURL: https://s3-eu-west-1.amazonaws.com/aldis-ci-templates-eu-west-1/ci-templates/ui-pipeline.yaml
       Parameters:
         Name: !Ref AWS::StackName
         Cluster: !GetAtt Cluster.Outputs.ClusterName
@@ -107,7 +121,7 @@ Resources:
   ApiDeploymentPipeline:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3-eu-west-1.amazonaws.com/dh-aldis-ci/ci-templates/api-pipeline.yaml
+      TemplateURL: https://s3-eu-west-1.amazonaws.com/aldis-ci-templates-eu-west-1/ci-templates/api-pipeline.yaml
       Parameters:
         Name: !Ref AWS::StackName
         Cluster: !GetAtt Cluster.Outputs.ClusterName
@@ -122,7 +136,7 @@ Resources:
   LoadBalancer:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3-eu-west-1.amazonaws.com/dh-aldis-ci/ci-templates/load-balancer.yaml
+      TemplateURL: https://s3-eu-west-1.amazonaws.com/aldis-ci-templates-eu-west-1/ci-templates/load-balancer.yaml
       Parameters:
         Subnets: !GetAtt VPC.Outputs.Subnets
         VpcId: !GetAtt VPC.Outputs.VpcId
@@ -130,7 +144,7 @@ Resources:
   VPC:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3-eu-west-1.amazonaws.com/dh-aldis-ci/ci-templates/vpc.yaml
+      TemplateURL: https://s3-eu-west-1.amazonaws.com/aldis-ci-templates-eu-west-1/ci-templates/vpc.yaml
       Parameters:
         Name: !Ref AWS::StackName
         VpcCIDR: 10.215.0.0/16

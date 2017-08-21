@@ -2,13 +2,13 @@ Parameters:
   Name:
     Type: String
 
-  GitHubUIRepo:
+  GitHubMetadataApiRepo:
     Type: String
 
   GitHubTemplatesRepo:
     Type: String
 
-  GitHubUIBranch:
+  GitHubBranch:
     Type: String
 
   GitHubTemplatesBranch:
@@ -20,14 +20,15 @@ Parameters:
   GitHubUser:
     Type: String
 
-  UITargetGroup:
+  MetadataApiTargetGroup:
     Type: String
 
   Cluster:
     Type: String
 
 Resources:
-  UIRepository:
+
+  MetadataApiRepository:
     Type: AWS::ECR::Repository
     DeletionPolicy: Retain
 
@@ -86,7 +87,7 @@ Resources:
                   - s3:GetObject
                   - s3:PutObject
                   - s3:GetObjectVersion
-              - Resource: !Sub arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${UIRepository}
+              - Resource: !Sub arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${MetadataApiRepository}
                 Effect: Allow
                 Action:
                   - ecr:GetDownloadUrlForLayer
@@ -134,31 +135,47 @@ Resources:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
 
-  CodeUIBuildProject:
+  CodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
         Location: !Ref ArtifactBucket
         Type: "S3"
       Source:
-        Location: !Sub ${ArtifactBucket}/aldis-ui-source.zip
+        Location: !Sub ${ArtifactBucket}/aldis-metadata-api-source.zip
         Type: "S3"
         BuildSpec: |
           version: 0.2
           phases:
+            install:
+              commands:
+                - export JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+                - export JDK_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+                - export JRE_HOME="/usr/lib/jvm/java-8-openjdk-amd64/jre"
+                - apt-get update && apt-get install -y software-properties-common && add-apt-repository ppa:openjdk-r/ppa
+                - apt-get update && apt-get -y install python-setuptools && apt-get -y install openjdk-8-jdk && apt-get clean
+                - update-ca-certificates -f
+                - mkdir -p /usr/src/gradle
+                - wget "https://services.gradle.org/distributions/gradle-4.1-bin.zip" -O /usr/src/gradle/gradle-4.1-bin.zip
+                - unzip /usr/src/gradle/gradle-4.1-bin.zip -d /usr/local
+                - ln -s /usr/local/gradle-4.1/bin/gradle /usr/bin/gradle
+                - rm -rf /usr/src/gradle /var/lib/apt/lists/* /tmp/* /var/tmp/*/
             pre_build:
               commands:
                 - $(aws ecr get-login)
                 - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
+                - echo "${REPOSITORY_URI}:${TAG}"
             build:
               commands:
-                - docker build --tag "${REPOSITORY_URI}:${TAG}" .
+                - gradle buildDocker
+                - docker images
+                - docker tag src:0.0.1-SNAPSHOT "${REPOSITORY_URI}:${TAG}" 
             post_build:
               commands:
                 - docker push "${REPOSITORY_URI}:${TAG}"
-                - printf '{"tag":"%s"}' $TAG > uibuild.json
+                - printf '{"tag":"%s"}' $TAG > apibuild.json
           artifacts:
-            files: uibuild.json
+            files: apibuild.json
       Environment:
         ComputeType: "BUILD_GENERAL1_LARGE"
         Image: "aws/codebuild/docker:1.12.1"
@@ -167,15 +184,14 @@ Resources:
           - Name: AWS_DEFAULT_REGION
             Value: !Ref AWS::Region
           - Name: REPOSITORY_URI
-            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${UIRepository}
-      Name: !Sub ${AWS::StackName}-UI
+            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${MetadataApiRepository}
+      Name: !Sub ${AWS::StackName}-API
       ServiceRole: !Ref CodeBuildServiceRole
-
 
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      Name: !Sub ${Name}-UI-Pipeline
+      Name: !Sub ${Name}-API-Pipeline
       RoleArn: !GetAtt CodePipelineServiceRole.Arn
       ArtifactStore:
         Type: S3
@@ -183,7 +199,7 @@ Resources:
       Stages:
         - Name: Source
           Actions:
-            - Name: UIApp
+            - Name: MetadataApiApp
               ActionTypeId:
                 Category: Source
                 Owner: ThirdParty
@@ -191,29 +207,42 @@ Resources:
                 Provider: GitHub
               Configuration:
                 Owner: !Ref GitHubUser
-                Repo: !Ref GitHubUIRepo
-                Branch: !Ref GitHubUIBranch
+                Repo: !Ref GitHubMetadataApiRepo
+                Branch: !Ref GitHubBranch
                 OAuthToken: !Ref GitHubToken
               OutputArtifacts:
-                - Name: UIApp
+                - Name: MetadataApiApp
+              RunOrder: 1
+            - Name: Template
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: 1
+                Provider: GitHub
+              Configuration:
+                Owner: amidodave
+                Repo: !Ref GitHubTemplatesRepo
+                Branch: !Ref GitHubTemplatesBranch
+                OAuthToken: !Ref GitHubToken
+              OutputArtifacts:
+                - Name: Template
               RunOrder: 1
   
         - Name: Build
           Actions:
-            - Name: UIBuild
+            - Name: MetadataApiBuild
               ActionTypeId:
                 Category: Build
                 Owner: AWS
                 Version: 1
                 Provider: CodeBuild
               Configuration:
-                ProjectName: !Ref CodeUIBuildProject
+                ProjectName: !Ref CodeBuildProject
               InputArtifacts:
-                - Name: UIApp
+                - Name: MetadataApiApp
               OutputArtifacts:
-                - Name: UIBuildOutput
+                - Name: MetadataApiBuildOutput
               RunOrder: 1
-
         - Name: Deploy
           Actions:
             - Name: Deploy
@@ -225,24 +254,25 @@ Resources:
               Configuration:
                 ChangeSetName: Deploy
                 ActionMode: CREATE_UPDATE
-                StackName: !Sub "${AWS::StackName}-UIService"
+                StackName: !Sub "${AWS::StackName}-APIService"
                 Capabilities: CAPABILITY_NAMED_IAM
-                TemplatePath: https://s3-eu-west-1.amazonaws.com/dh-aldis-ci/ci-templates/ui-service.yaml
+                TemplatePath: Template::ci-templates/api-service.yaml
                 RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                 ParameterOverrides: !Sub |
                   {
-                    "UITag" : { "Fn::GetParam" : [ "UIBuildOutput", "uibuild.json", "tag" ] },
+                    "MetadataApiTag" : { "Fn::GetParam" : [ "MetadataApiBuildOutput", "apibuild.json", "tag" ] },
                     "DesiredCount": "1",
                     "Cluster": "${Cluster}",
-                    "UITargetGroup": "${UITargetGroup}",
-                    "UIRepository": "${UIRepository}"
+                    "MetadataApiTargetGroup": "${MetadataApiTargetGroup}",
+                    "MetadataApiRepository": "${MetadataApiRepository}"
                   }
               InputArtifacts:
-                - Name: UIApp
-                - Name: UIBuildOutput
+                - Name: MetadataApiBuildOutput
               RunOrder: 1
 
+
+
 Outputs:
+
   PipelineUrl:
     Value: !Sub https://console.aws.amazon.com/codepipeline/home?region=${AWS::Region}#/view/${Pipeline}
-
