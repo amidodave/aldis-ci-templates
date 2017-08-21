@@ -255,6 +255,7 @@ Resources:
               InputArtifacts:
                 - Name: UIApp
                 - Name: UIBuildOutput
+                - Name: Template
               RunOrder: 1
 
 Outputs:

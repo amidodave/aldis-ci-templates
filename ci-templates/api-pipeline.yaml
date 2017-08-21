@@ -267,6 +267,7 @@ Resources:
                     "MetadataApiRepository": "${MetadataApiRepository}"
                   }
               InputArtifacts:
+                - Name: Template
                 - Name: MetadataApiBuildOutput
               RunOrder: 1
 
