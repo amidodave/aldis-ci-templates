@@ -69,8 +69,6 @@ Metadata:
         default: "Templates Branch"
       GitHubToken:
         default: "Personal Access Token"
-      S3Bucket:
-        default: "Template bucket"
       EC2KeyPair:
         default: "EC2 Keypair"
     ParameterGroups:
@@ -88,7 +86,6 @@ Metadata:
       - Label:
           default: Other settings
         Parameters:
-          - S3Bucket
           - EC2KeyPair
 
 
