@@ -213,20 +213,6 @@ Resources:
               OutputArtifacts:
                 - Name: MetadataApiApp
               RunOrder: 1
-            - Name: Templates
-              ActionTypeId:
-                Category: Source
-                Owner: ThirdParty
-                Version: 1
-                Provider: GitHub
-              Configuration:
-                Owner: amidodave
-                Repo: !Ref GitHubTemplatesRepo
-                Branch: !Ref GitHubTemplatesBranch
-                OAuthToken: !Ref GitHubToken
-              OutputArtifacts:
-                - Name: Template
-              RunOrder: 1
   
         - Name: Build
           Actions:
@@ -267,7 +253,6 @@ Resources:
                     "MetadataApiRepository": "${MetadataApiRepository}"
                   }
               InputArtifacts:
-                - Name: Template
                 - Name: MetadataApiBuildOutput
               RunOrder: 1
 

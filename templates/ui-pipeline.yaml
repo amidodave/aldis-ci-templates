@@ -197,20 +197,6 @@ Resources:
               OutputArtifacts:
                 - Name: UIApp
               RunOrder: 1
-            - Name: Templates
-              ActionTypeId:
-                Category: Source
-                Owner: ThirdParty
-                Version: 1
-                Provider: GitHub
-              Configuration:
-                Owner: amidodave
-                Repo: !Ref GitHubTemplatesRepo
-                Branch: !Ref GitHubTemplatesBranch
-                OAuthToken: !Ref GitHubToken
-              OutputArtifacts:
-                - Name: Template
-              RunOrder: 1
   
         - Name: Build
           Actions:
@@ -252,7 +238,6 @@ Resources:
                     "UIRepository": "${UIRepository}"
                   }
               InputArtifacts:
-                - Name: Template
                 - Name: UIApp
                 - Name: UIBuildOutput
               RunOrder: 1
