@@ -7,6 +7,9 @@ Parameters:
     Type: Number
     Default: 1
 
+  EC2KeyPair:
+    Type: String
+
   Subnets:
     Type: List<AWS::EC2::Subnet::Id>
 
@@ -146,7 +149,7 @@ Resources:
       ImageId: !FindInMap [ AWSRegionToAMI, !Ref "AWS::Region", AMI ]
       InstanceType: !Ref InstanceType
       IamInstanceProfile: !Ref InstanceProfile
-      KeyName: dh-useast-keypair
+      KeyName: !Ref EC2KeyPair
       SecurityGroups:
         - !Ref SecurityGroup
       UserData:
