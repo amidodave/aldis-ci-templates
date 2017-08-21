@@ -53,7 +53,6 @@ Resources:
         - Name: aldis-metadata-api
           Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${MetadataApiRepository}:${MetadataApiTag}
           Essential: true
-          Memory: 128
           PortMappings:
             - ContainerPort: 8080
               HostPort: 8080
