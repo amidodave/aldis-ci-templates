@@ -256,7 +256,7 @@ Resources:
                 ActionMode: CREATE_UPDATE
                 StackName: !Sub "${AWS::StackName}-APIService"
                 Capabilities: CAPABILITY_NAMED_IAM
-                TemplatePath: Template::templates/api-service.yaml
+                TemplatePath: https://s3-eu-west-1.amazonaws.com/dh-aldis-ci/ci-templates/api-service.yaml
                 RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                 ParameterOverrides: !Sub |
                   {
