@@ -41,7 +41,7 @@ Resources:
       TaskDefinition: !Ref TaskDefinition
       LoadBalancers:
         - ContainerName: aldis-ui
-          ContainerPort: 3000
+          ContainerPort: 80
           TargetGroupArn: !Ref UITargetGroup
 
   TaskDefinition:
@@ -51,15 +51,10 @@ Resources:
       ContainerDefinitions:
         - Name: aldis-ui
           Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${UIRepository}:${UITag}
-          EntryPoint:
-            - hs
-            - build
-            - -p
-            - 3000
           Essential: true
-          Memory: 128
+          Memory: 256
           PortMappings:
-            - ContainerPort: 3000
+            - ContainerPort: 80
               HostPort: 80
           Environment:
             - Name: UITag
