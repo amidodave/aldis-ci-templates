@@ -52,11 +52,6 @@ Resources:
       ContainerDefinitions:
         - Name: aldis-metadata-api
           Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${MetadataApiRepository}:${MetadataApiTag}
-          EntryPoint:
-            - java
-            - -Djava.security.egd=file:/dev/./urandom
-            - -jar
-            - /aldis-metadata-api.jar
           Essential: true
           Memory: 128
           PortMappings:
